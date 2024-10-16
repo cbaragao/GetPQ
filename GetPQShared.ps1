@@ -229,6 +229,10 @@ $formatButton.Add_Click({
     $code = $formatTextBox.Text
     $resultType = "text" # Adjust as needed
     $formattedCode = FormatPQ -code $code -resultType $resultType
+
+    # Replace step names
+    $formattedCode = $formattedCode -replace '#"([^"]+)"', { $_.Groups[1].Value -replace ' ', '_' }
+
     $formatTextBox.Text = $formattedCode
     Write-Host $formattedCode
 })
