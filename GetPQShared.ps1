@@ -210,7 +210,7 @@ $form.Controls.Add($tabControl)
 # Create a textbox for the second tab page
 $formatTextBox = New-Object System.Windows.Forms.TextBox
 $formatTextBox.Location = New-Object System.Drawing.Point(10, 10)
-$formatTextBox.Size = New-Object System.Drawing.Size(350, 140)
+$formatTextBox.Size = New-Object System.Drawing.Size(350, 120)
 $formatTextBox.Multiline = $true
 $tabPage2.Controls.Add($formatTextBox)
 
@@ -224,18 +224,29 @@ $tabPage2.Controls.Add($formatButton)
 $formatButton.BackColor = [System.Drawing.Color]::Green
 $formatButton.ForeColor = [System.Drawing.Color]::White
 
-# Event handler for format button click
+
+# Create a checkbox for reformatting steps
+$reformatStepsCheckbox = New-Object System.Windows.Forms.CheckBox
+$reformatStepsCheckbox.Location = New-Object System.Drawing.Point(10, 130)
+$reformatStepsCheckbox.Size = New-Object System.Drawing.Size(130, 30)
+$reformatStepsCheckbox.Text = "Reformat Steps"
+$tabPage2.Controls.Add($reformatStepsCheckbox)
+
+# Modify the event handler for format button click
 $formatButton.Add_Click({
     $code = $formatTextBox.Text
     $resultType = "text" # Adjust as needed
     $formattedCode = FormatPQ -code $code -resultType $resultType
 
-    # Replace step names
-    $formattedCode = $formattedCode -replace '#"([^"]+)"', { $_.Groups[1].Value -replace ' ', '_' }
-
+    # Replace step names if checkbox is checked
+    if ($reformatStepsCheckbox.Checked) {
+        $formattedCode = $formattedCode -replace '#"([^"]+)"', { $_.Groups[1].Value -replace ' ', '_' }
+    }
+    
     $formatTextBox.Text = $formattedCode
     Write-Host $formattedCode
 })
+
 
 # Create a button to copy formatted code to clipboard
 $copyFormatButton = New-Object System.Windows.Forms.Button
@@ -254,7 +265,7 @@ $tabPage3.Text = "PQ How"
 
 # Create a button for the third tab page
 $pqHowButton = New-Object System.Windows.Forms.Button
-$pqHowButton.Location = New-Object System.Drawing.Point(10, 10)
+$pqHowButton.Location = New-Object System.Drawing.Point(10, 70)
 $pqHowButton.Size = New-Object System.Drawing.Size(100, 30)
 $pqHowButton.Text = "Go to PQ How"
 
@@ -263,9 +274,30 @@ $pqHowButton.ForeColor = [System.Drawing.Color]::White
 
 $tabPage3.Controls.Add($pqHowButton)
 
-# Event handler for PQ How button click
+
+# Create a label for the textbox
+$pqHowLabel = New-Object System.Windows.Forms.Label
+$pqHowLabel.Location = New-Object System.Drawing.Point(10, 10)
+$pqHowLabel.Size = New-Object System.Drawing.Size(200, 20)
+$pqHowLabel.Text = "Search Query (Optional):"
+$tabPage3.Controls.Add($pqHowLabel)
+
+# Create a textbox for the search query
+$pqHowTextBox = New-Object System.Windows.Forms.TextBox
+$pqHowTextBox.Location = New-Object System.Drawing.Point(10, 30)
+$pqHowTextBox.Size = New-Object System.Drawing.Size(350, 20)
+$tabPage3.Controls.Add($pqHowTextBox)
+
+# Modify the event handler for PQ How button click
 $pqHowButton.Add_Click({
-    Start-Process "https://powerquery.how"
+    $searchQuery = $pqHowTextBox.Text
+    if ($searchQuery) {
+        $encodedQuery = [System.Web.HttpUtility]::UrlEncode($searchQuery)
+        $url = "https://powerquery.how/?s=$encodedQuery"
+    } else {
+        $url = "https://powerquery.how"
+    }
+    Start-Process $url
 })
 
 # Add the third tab page to the tab control
