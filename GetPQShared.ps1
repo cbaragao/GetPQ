@@ -69,6 +69,20 @@ $form.Size = New-Object System.Drawing.Size(410, 280)
 $form.StartPosition = "CenterScreen"
 
 
+# Set form background color to white
+$form.BackColor = [System.Drawing.Color]::White
+
+# Add closing event to the form
+$form.Add_Closing({param($sender,$e)
+    $result = [System.Windows.Forms.MessageBox]::Show(`
+        "Are you sure you want to exit?", `
+        "Close", [System.Windows.Forms.MessageBoxButtons]::YesNoCancel)
+    if ($result -ne [System.Windows.Forms.DialogResult]::Yes)
+    {
+        $e.Cancel= $true
+    }
+})
+
 # Convert base64 string to byte array
 $iconBytes = [Convert]::FromBase64String($base64icon)
 
@@ -81,18 +95,70 @@ $icon = New-Object System.Drawing.Icon($memoryStream)
 # Set the form icon
 $form.Icon = $icon
 
-# Create a listbox to display the file names
-$listBox = New-Object System.Windows.Forms.ListBox
-$listBox.Location = New-Object System.Drawing.Point(10, 35)
-$listBox.Size = New-Object System.Drawing.Size(350, 120)
-$form.Controls.Add($listBox)
+# Create tab control
+$tabControl = New-Object System.Windows.Forms.TabControl
+$tabControl.Size = New-Object System.Drawing.Size(370, 220)
+$tabControl.Location = New-Object System.Drawing.Point(10, 10)
 
+# Create the first tab page
+$tabPage1 = New-Object System.Windows.Forms.TabPage
+$tabPage1.Text = "Library"
+
+# Create the second tab page
+$tabPage2 = New-Object System.Windows.Forms.TabPage
+$tabPage2.Text = "Format"
+
+# Create the third tab page
+$tabPage3 = New-Object System.Windows.Forms.TabPage
+$tabPage3.Text = "PQ How"
+
+# Create the fourth tab page
+$tabPage4 = New-Object System.Windows.Forms.TabPage
+$tabPage4.Text = "VS Code"
+
+# Add tab pages to the tab control
+$tabControl.TabPages.Add($tabPage1)
+$tabControl.TabPages.Add($tabPage2)
+$tabControl.TabPages.Add($tabPage3)
+$tabControl.TabPages.Add($tabPage4)
+
+
+# PAGE 1
 # Create a button
 $button = New-Object System.Windows.Forms.Button
 $button.Location = New-Object System.Drawing.Point(10, 160)
 $button.Size = New-Object System.Drawing.Size(100, 30)
 $button.Text = "Copy"
-$form.Controls.Add($button)
+$button.BackColor = [System.Drawing.Color]::Green
+$button.ForeColor = [System.Drawing.Color]::White
+
+# Create a listbox to display the file names
+$listBox = New-Object System.Windows.Forms.ListBox
+$listBox.Location = New-Object System.Drawing.Point(10, 35)
+$listBox.Size = New-Object System.Drawing.Size(350, 120)
+
+# Create a button to open the wiki
+$wikiButton = New-Object System.Windows.Forms.Button
+$wikiButton.Location = New-Object System.Drawing.Point(120, 160)
+$wikiButton.Size = New-Object System.Drawing.Size(100, 30)
+$wikiButton.Text = "Open Wiki"
+$wikiButton.BackColor = [System.Drawing.Color]::Green
+$wikiButton.ForeColor = [System.Drawing.Color]::White
+
+# Create a textbox for search
+$searchBox = New-Object System.Windows.Forms.TextBox
+$searchBox.Location = New-Object System.Drawing.Point(10, 10)
+$searchBox.Size = New-Object System.Drawing.Size(350, 20)
+
+
+# Add controls to the first tab page
+$tabPage1.Controls.Add($button)
+$tabPage1.Controls.Add($wikiButton)
+$tabPage1.Controls.Add($searchBox)
+$tabPage1.Controls.Add($listBox)
+
+
+# PAGE 1 Functions
 
 # Event handler for button click with error handling
 $button.Add_Click({
@@ -112,15 +178,6 @@ $button.Add_Click({
     }
 })
 
-
-
-# Create a button to open the wiki
-$wikiButton = New-Object System.Windows.Forms.Button
-$wikiButton.Location = New-Object System.Drawing.Point(120, 160)
-$wikiButton.Size = New-Object System.Drawing.Size(100, 30)
-$wikiButton.Text = "Open Wiki"
-$form.Controls.Add($wikiButton)
-
 # Event handler for wiki button click
 $wikiButton.Add_Click({
     Start-Process "https://github.com/cbaragao/PQ-Shared-Library/wiki"
@@ -137,18 +194,11 @@ $filePaths = $files.tree | ForEach-Object {
         Url = $_.url
     }
 }
-
 # Filter on path attributes that end in .pq
 $pqFiles = $filePaths | Where-Object { $_.Path -like "*.pq" }
 
 # Add the file names to the listbox
 $listBox.Items.AddRange($pqFiles.Path)
-
-# Create a textbox for search
-$searchBox = New-Object System.Windows.Forms.TextBox
-$searchBox.Location = New-Object System.Drawing.Point(10, 10)
-$searchBox.Size = New-Object System.Drawing.Size(350, 20)
-$form.Controls.Add($searchBox)
 
 # Event handler for search box text change with error handling
 $searchBox.Add_TextChanged({
@@ -161,132 +211,100 @@ $searchBox.Add_TextChanged({
     }
 })
 
-# Set button colors
-$button.BackColor = [System.Drawing.Color]::Green
-$button.ForeColor = [System.Drawing.Color]::White
-
-$wikiButton.BackColor = [System.Drawing.Color]::Green
-$wikiButton.ForeColor = [System.Drawing.Color]::White
-
-# Set form background color to white
-$form.BackColor = [System.Drawing.Color]::White
-
-$form.Add_Closing({param($sender,$e)
-    $result = [System.Windows.Forms.MessageBox]::Show(`
-        "Are you sure you want to exit?", `
-        "Close", [System.Windows.Forms.MessageBoxButtons]::YesNoCancel)
-    if ($result -ne [System.Windows.Forms.DialogResult]::Yes)
-    {
-        $e.Cancel= $true
-    }
-})
-
-# Create tab control
-$tabControl = New-Object System.Windows.Forms.TabControl
-$tabControl.Size = New-Object System.Drawing.Size(370, 220)
-$tabControl.Location = New-Object System.Drawing.Point(10, 10)
-
-# Create the first tab page
-$tabPage1 = New-Object System.Windows.Forms.TabPage
-$tabPage1.Text = "Library"
-
-# Create the second tab page
-$tabPage2 = New-Object System.Windows.Forms.TabPage
-$tabPage2.Text = "Format"
-
-# Add controls to the first tab page
-$tabPage1.Controls.Add($listBox)
-$tabPage1.Controls.Add($button)
-$tabPage1.Controls.Add($wikiButton)
-$tabPage1.Controls.Add($searchBox)
-
-# Add tab pages to the tab control
-$tabControl.TabPages.Add($tabPage1)
-$tabControl.TabPages.Add($tabPage2)
-
-# Add the tab control to the form
-$form.Controls.Add($tabControl)
+# PAGE 2 
 
 # Create a textbox for the second tab page
 $formatTextBox = New-Object System.Windows.Forms.TextBox
 $formatTextBox.Location = New-Object System.Drawing.Point(10, 10)
 $formatTextBox.Size = New-Object System.Drawing.Size(350, 120)
 $formatTextBox.Multiline = $true
-$tabPage2.Controls.Add($formatTextBox)
+
 
 # Create a button for the second tab page
 $formatButton = New-Object System.Windows.Forms.Button
 $formatButton.Location = New-Object System.Drawing.Point(10, 160)
 $formatButton.Size = New-Object System.Drawing.Size(100, 30)
 $formatButton.Text = "Format"
-$tabPage2.Controls.Add($formatButton)
-
 $formatButton.BackColor = [System.Drawing.Color]::Green
 $formatButton.ForeColor = [System.Drawing.Color]::White
 
+# Create a button to copy the formatted code
+$copyFormatButton = New-Object System.Windows.Forms.Button
+$copyFormatButton.Size = New-Object System.Drawing.Size(100, 30)
+$copyFormatButton.Location = New-Object System.Drawing.Point(120, 160)
+$copyFormatButton.Text = "Copy"
+$copyFormatButton.BackColor = [System.Drawing.Color]::Green
+$copyFormatButton.ForeColor = [System.Drawing.Color]::White
 
 # Create a checkbox for reformatting steps
-$reformatStepsCheckbox = New-Object System.Windows.Forms.CheckBox
-$reformatStepsCheckbox.Location = New-Object System.Drawing.Point(10, 130)
-$reformatStepsCheckbox.Size = New-Object System.Drawing.Size(130, 30)
-$reformatStepsCheckbox.Text = "Reformat Steps"
-$tabPage2.Controls.Add($reformatStepsCheckbox)
+#$reformatStepsCheckbox = New-Object System.Windows.Forms.CheckBox
+#$reformatStepsCheckbox.Location = New-Object System.Drawing.Point(10, 130)
+#$reformatStepsCheckbox.Size = New-Object System.Drawing.Size(130, 30)
+#$reformatStepsCheckbox.Text = "Reformat Steps"
 
-# Modify the event handler for format button click
+# Add controls to the second tab page
+$tabPage2.Controls.Add($formatButton)
+$tabPage2.Controls.Add($formatTextBox)
+#$tabPage2.Controls.Add($reformatStepsCheckbox)
+$tabPage2.Controls.Add($copyFormatButton)
+
+# Page 2 Functions
+
+# Ensure the formatted code does not contain PowerShell code and replace step names correctly
 $formatButton.Add_Click({
     $code = $formatTextBox.Text
     $resultType = "text" # Adjust as needed
     $formattedCode = FormatPQ -code $code -resultType $resultType
 
     # Replace step names if checkbox is checked
-    if ($reformatStepsCheckbox.Checked) {
-        $formattedCode = $formattedCode -replace '#"([^"]+)"', { $_.Groups[1].Value -replace ' ', '_' }
-    }
+    #if ($reformatStepsCheckbox.Checked) {
+     #   $formattedCode = $formattedCode -replace '#"([^"]+)"', { $_.Groups[1].Value -replace ' ', '_' }
+    #}
     
     $formatTextBox.Text = $formattedCode
-    Write-Host $formattedCode
+})
+
+# Event handler for copy button click
+$copyFormatButton.Add_Click({
+    try {
+        $formattedCode = $formatTextBox.Text
+        Set-Clipboard -Value $formattedCode
+        [System.Windows.Forms.MessageBox]::Show("Formatted code copied to clipboard.")
+    } catch {
+        [System.Windows.Forms.MessageBox]::Show("An error occurred while copying the formatted code.")
+    }
 })
 
 
-# Create a button to copy formatted code to clipboard
-$copyFormatButton = New-Object System.Windows.Forms.Button
-$copyFormatButton.Location = New-Object System.Drawing.Point(120, 160)
-$copyFormatButton.Size = New-Object System.Drawing.Size(100, 30)
-$copyFormatButton.Text = "Copy"
 
-$copyFormatButton.BackColor = [System.Drawing.Color]::Green
-$copyFormatButton.ForeColor = [System.Drawing.Color]::White
-
-$tabPage2.Controls.Add($copyFormatButton)
-
-# Create the third tab page
-$tabPage3 = New-Object System.Windows.Forms.TabPage
-$tabPage3.Text = "PQ How"
+# Page 3
 
 # Create a button for the third tab page
 $pqHowButton = New-Object System.Windows.Forms.Button
 $pqHowButton.Location = New-Object System.Drawing.Point(10, 70)
 $pqHowButton.Size = New-Object System.Drawing.Size(100, 30)
 $pqHowButton.Text = "Go to PQ How"
-
 $pqHowButton.BackColor = [System.Drawing.Color]::Green
 $pqHowButton.ForeColor = [System.Drawing.Color]::White
-
-$tabPage3.Controls.Add($pqHowButton)
-
 
 # Create a label for the textbox
 $pqHowLabel = New-Object System.Windows.Forms.Label
 $pqHowLabel.Location = New-Object System.Drawing.Point(10, 10)
 $pqHowLabel.Size = New-Object System.Drawing.Size(200, 20)
 $pqHowLabel.Text = "Search Query (Optional):"
-$tabPage3.Controls.Add($pqHowLabel)
 
 # Create a textbox for the search query
 $pqHowTextBox = New-Object System.Windows.Forms.TextBox
 $pqHowTextBox.Location = New-Object System.Drawing.Point(10, 30)
 $pqHowTextBox.Size = New-Object System.Drawing.Size(350, 20)
+
+# Add controls to the third tab page
 $tabPage3.Controls.Add($pqHowTextBox)
+$tabPage3.Controls.Add($pqHowLabel)
+$tabPage3.Controls.Add($pqHowButton)
+
+
+# Page 3 Functions
 
 # Modify the event handler for PQ How button click
 $pqHowButton.Add_Click({
@@ -300,30 +318,19 @@ $pqHowButton.Add_Click({
     Start-Process $url
 })
 
-# Add the third tab page to the tab control
-$tabControl.TabPages.Add($tabPage3)
-
-# Event handler for copy button click
-$copyFormatButton.Add_Click({
-    $formattedCode = $formatTextBox.Text
-    Set-Clipboard -Value $formattedCode
-    [System.Windows.Forms.MessageBox]::Show("Formatted code copied to clipboard.")
-})
-
-# Create the fourth tab page
-$tabPage4 = New-Object System.Windows.Forms.TabPage
-$tabPage4.Text = "VS Code"
+# Page 4
 
 # Create a button for the fourth tab page
 $vsCodeButton = New-Object System.Windows.Forms.Button
 $vsCodeButton.Location = New-Object System.Drawing.Point(10, 10)
 $vsCodeButton.Size = New-Object System.Drawing.Size(150, 30)
 $vsCodeButton.Text = "Open VS Code"
-
 $vsCodeButton.BackColor = [System.Drawing.Color]::Green
 $vsCodeButton.ForeColor = [System.Drawing.Color]::White
 
 $tabPage4.Controls.Add($vsCodeButton)
+
+# Page 4 Functions
 
 # Event handler for VS Code button click
 $vsCodeButton.Add_Click({
@@ -337,8 +344,8 @@ $vsCodeButton.Add_Click({
     }
 })
 
-# Add the fourth tab page to the tab control
-$tabControl.TabPages.Add($tabPage4)
+# Add the tab control to the form
+$form.Controls.Add($tabControl)
 
 # Show the form
 $form.ShowDialog() | Out-Null
