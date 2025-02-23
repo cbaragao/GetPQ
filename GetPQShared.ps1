@@ -1,6 +1,7 @@
 # Load the required .NET assemblies
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Web
+Add-Type -AssemblyName System.Drawing
 
 # Set error action preference to stop on errors
 $ErrorActionPreference = "Stop"
@@ -236,17 +237,12 @@ $copyFormatButton.Text = "Copy"
 $copyFormatButton.BackColor = [System.Drawing.Color]::Green
 $copyFormatButton.ForeColor = [System.Drawing.Color]::White
 
-# Create a checkbox for reformatting steps
-#$reformatStepsCheckbox = New-Object System.Windows.Forms.CheckBox
-#$reformatStepsCheckbox.Location = New-Object System.Drawing.Point(10, 130)
-#$reformatStepsCheckbox.Size = New-Object System.Drawing.Size(130, 30)
-#$reformatStepsCheckbox.Text = "Reformat Steps"
 
 # Add controls to the second tab page
 $tabPage2.Controls.Add($formatButton)
 $tabPage2.Controls.Add($formatTextBox)
-#$tabPage2.Controls.Add($reformatStepsCheckbox)
 $tabPage2.Controls.Add($copyFormatButton)
+
 
 # Page 2 Functions
 
@@ -256,11 +252,6 @@ $formatButton.Add_Click({
     $resultType = "text" # Adjust as needed
     $formattedCode = FormatPQ -code $code -resultType $resultType
 
-    # Replace step names if checkbox is checked
-    #if ($reformatStepsCheckbox.Checked) {
-     #   $formattedCode = $formattedCode -replace '#"([^"]+)"', { $_.Groups[1].Value -replace ' ', '_' }
-    #}
-    
     $formatTextBox.Text = $formattedCode
 })
 
@@ -274,8 +265,6 @@ $copyFormatButton.Add_Click({
         [System.Windows.Forms.MessageBox]::Show("An error occurred while copying the formatted code.")
     }
 })
-
-
 
 # Page 3
 
@@ -342,6 +331,92 @@ $vsCodeButton.Add_Click({
             Start-Process "https://code.visualstudio.com/"
         }
     }
+})
+
+
+# Page 5
+
+# Create the fifth tab page
+$tabPage5 = New-Object System.Windows.Forms.TabPage
+$tabPage5.Text = "Params"
+
+# Create a textbox for the fifth tab page
+$paramsTextBox = New-Object System.Windows.Forms.TextBox
+$paramsTextBox.Location = New-Object System.Drawing.Point(10, 10)
+$paramsTextBox.Size = New-Object System.Drawing.Size(350, 120)
+$paramsTextBox.Multiline = $true
+
+# Create a button for the fifth tab page
+$getParamsButton = New-Object System.Windows.Forms.Button
+$getParamsButton.Location = New-Object System.Drawing.Point(10, 160)
+$getParamsButton.Size = New-Object System.Drawing.Size(100, 30)
+$getParamsButton.Text = "Get Params"
+$getParamsButton.BackColor = [System.Drawing.Color]::Green
+$getParamsButton.ForeColor = [System.Drawing.Color]::White
+
+# Create a listbox for displaying matches
+$paramsListBox = New-Object System.Windows.Forms.ListBox
+$paramsListBox.Location = New-Object System.Drawing.Point(10, 10)
+$paramsListBox.Size = New-Object System.Drawing.Size(350, 120)
+$paramsListBox.Visible = $false
+
+# Create a button to clear the results
+$clearButton = New-Object System.Windows.Forms.Button
+$clearButton.Location = New-Object System.Drawing.Point(120, 160)
+$clearButton.Size = New-Object System.Drawing.Size(100, 30)
+$clearButton.Text = "Clear"
+$clearButton.BackColor = [System.Drawing.Color]::Green
+$clearButton.ForeColor = [System.Drawing.Color]::White
+$clearButton.Visible = $false
+
+# Add controls to the fifth tab page
+$tabPage5.Controls.Add($paramsTextBox)
+$tabPage5.Controls.Add($getParamsButton)
+$tabPage5.Controls.Add($paramsListBox)
+$tabPage5.Controls.Add($clearButton)
+
+# Add the fifth tab page to the tab control
+$tabControl.TabPages.Add($tabPage5)
+
+# Page 5 Functions
+
+# Event handler for Get Params button click
+$getParamsButton.Add_Click({
+    $code = $paramsTextBox.Text
+    $pattern = '"(http[^"]+|[a-zA-Z]:\\[^"]+)"'
+    $matches = [regex]::Matches($code, $pattern)
+    
+    if ($matches.Count -gt 0) {
+        $paramsListBox.Items.Clear()
+        foreach ($match in $matches) {
+            $paramString = "=`"$($match.Groups[1].Value)`" meta [IsParameterQuery=true, Type=`"Text`", IsParameterQueryRequired=true]"
+
+            $paramsListBox.Items.Add($paramString)
+        }
+        $paramsTextBox.Visible = $false
+        $getParamsButton.Visible = $false
+        $paramsListBox.Visible = $true
+        $clearButton.Visible = $true
+    } else {
+        [System.Windows.Forms.MessageBox]::Show("No matches found.")
+    }
+})
+
+# Event handler for listbox item click
+$paramsListBox.Add_Click({
+    if ($paramsListBox.SelectedItem) {
+        Set-Clipboard -Value $paramsListBox.SelectedItem
+        [System.Windows.Forms.MessageBox]::Show("Value copied to clipboard.")
+    }
+})
+
+# Event handler for clear button click
+$clearButton.Add_Click({
+    $paramsTextBox.Text = ""
+    $paramsTextBox.Visible = $true
+    $getParamsButton.Visible = $true
+    $paramsListBox.Visible = $false
+    $clearButton.Visible = $false
 })
 
 # Add the tab control to the form
