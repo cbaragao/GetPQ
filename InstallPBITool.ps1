@@ -1,6 +1,6 @@
 # Define the JSON structure
 $jsonContent = @{
-    version = "1.0.0"
+    version = "1.1.0"
     name = "PQ Shared Library"
     description = "Launches PowerShell and runs a script that allows you to query and copy shared PQ Code from Chris Aragao's GitHub repository."
     path = ""
